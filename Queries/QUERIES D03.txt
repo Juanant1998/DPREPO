@@ -1,0 +1,417 @@
+******QUERY C/1: 
+
+
+The average, the minimum, the maximum, and the standard deviation of the number of fix-up tasks per user. 
+
+
+* Average:
+select avg(c.fixUpTasks.size) from Customer c;
+
+
+Una query simple que devuelve la media de fix up tasks de todos los clientes.
+Resultado:
+
+
+1 object selected
+2.5
+
+
+* Minimum:
+select min(c.fixUpTasks.size)
+ from Customer c;
+Una query simple que devuelve la media de fix up tasks de todos los clientes.
+Resultado:
+
+1 object selected
+2
+
+
+
+*Maximum:
+select max(c.fixUpTasks.size)
+ from Customer c;
+Una query simple que devuelve la media de fix up tasks de todos los clientes.
+Resultado:
+
+> select max(c.fixUpTasks.size)
+ from Customer c;	
+1 object selected
+3
+> 
+
+
+* Standard deviation:
+select sqrt(sum(c.fixUpTasks.size * c.fixUpTasks.size)/ count(c.fixUpTasks.size) - avg(c.fixUpTasks.size) * avg(c.fixUpTasks.size))
+ from Customer c;
+Esta query calcula la desviación estándar usando para ello la fórmula de dicha desviación, y devuelve como resultado:
+
+> select sqrt(sum(c.fixUpTasks.size * c.fixUpTasks.size)/ count(c.fixUpTasks.size) - avg(c.fixUpTasks.size) * avg(c.fixUpTasks.size)) from Customer c;
+1 object selected
+0.5
+
+
+
+
+******QUERY C/2:
+The average, the minimum, the maximum, and the standard deviation of the
+number of applications per fix-up task.
+
+*Average:
+select avg(f.applications.size)
+ from FixUpTask f;
+Una query simple que retorna la media de apliaciones por fix up task.
+Resultado:
+1 object selected
+1.4
+
+
+*Minimum:
+
+select min(f.applications.size)
+ from FixUpTask f;
+Una query simple que retorna el mínimo número de apliaciones por fix up task.
+Resultado:
+1 object selected
+1
+
+
+*Maximum:
+
+select max(f.applications.size)
+ from FixUpTask f;
+Retorna el mínimo número de apliaciones por fix up task.
+Resultado:
+1 object selected
+3
+
+
+*Standard deviation:
+
+select sqrt(sum(f.applications.size * f.applications.size)/ count(f.applications.size) - avg(f.applications.size) * avg(f.applications.size))
+ from FixUpTask f;
+
+En este caso calculamos la desviación estándar mediante la fórmula vista anteriormente.
+
+Resultado:
+1 object selected
+0.8
+
+
+
+
+
+
+******QUERY C/3: The average, the minimum, the maximum, and the standard deviation of the
+maximum price of the fix-up tasks.
+
+*Average:
+select avg(f.maximumPrice)
+ from FixUpTask f;
+Esta query devuelve la media del precio máximo de cada fix up task.
+Resultado:
+1 object selected
+83.0
+
+*Minimum:
+select min(f.maximumPrice)
+ from FixUpTask f;
+Esta query devuelve el mínimo precio de todos los fix up task.
+Resultado:
+1 object selected
+40.0
+
+
+*Maximum:
+select max(f.maximumPrice)
+ from FixUpTask f;
+Esta query devuelve el máximo precio de todos los fix up task.
+Resultado:
+1 object selected
+125.0
+
+
+*Standard deviation:
+select sqrt(sum(f.maximumPrice * f.maximumPrice)/ count(f.maximumPrice) - avg(f.maximumPrice) * avg(f.maximumPrice))
+ from FixUpTask f;
+
+En este caso se calcula la desviación estándar de los precios máximos por la fórmula vista anteriormente.
+Resultado: 
+1 object selected
+31.400636936215164
+
+
+
+
+
+******QUERY C/4: The average, the minimum, the maximum, and the standard deviation of the
+price offered in the applications
+
+*Average:
+select avg(a.offeredPrice)
+ from Application a;
+Se devuelve la media de precio ofrecido de todas las aplicaciones.
+Resultado:
+1 object selected
+201.43
+
+
+
+*Minimum:
+select min(a.offeredPrice)
+ from Application a;
+En este caso devuelve el precio mínimo de las aplicaciones.
+Resultado:
+1 object selected
+11.01
+
+
+
+
+*Maximum
+select max(a.offeredPrice)
+ from Application a;
+En este caso devuelve el precio máximo de las aplicaciones
+Resultado:
+1 object selected
+1120.0
+
+
+
+*Standard deviation:
+select sqrt(sum(a.offeredPrice * a.offeredPrice)/ count(a.offeredPrice) - avg(a.offeredPrice) * avg(a.offeredPrice))
+ from Application a;
+En este caso devuelve la desviación estándar de las aplicaciones, con su fórmula ya definida anteriormente.
+Resultado:
+1 object selected
+377.14451678747383
+
+
+
+
+
+******QUERY C/5: The ratio of pending applications
+select count(a1)*1.0 / 
+(select count(a2) from Application a2)*1.0 
+from Application a1 where a1.status='PENDING';
+
+
+Para calcular el ratio dividimos el número de aplicaciones que tienen como estado 'PENDING' entre el número total.
+
+El resultado es este:
+
+ object selected
+0.428571
+
+Que es el ratio de aplicaciones Pending, pues son 3 de 7.
+
+
+
+
+
+*******QUERY C/6: The ratio of accepted applications
+select count(a1)*1.0 / 
+(select count(a2) from Application a2)*1.0 
+from Application a1 where a1.status='ACCEPTED';
+
+
+Para calcular el ratio dividimos el número de aplicaciones que tienen como estado 'ACCEPTED' entre el número total.
+
+El resultado es este:
+
+1 object selected
+0.428571
+
+Que es el ratio de aplicaciones aceptadas (3 de 7).
+
+
+
+******QUERY C/7: The ratio of rejected applications
+select count(a1)*1.0 / 
+(select count(a2) from Application a2)*1.0 
+from Application a1 where a1.status='REJECTED';
+
+
+Para calcular el ratio dividimos el número de aplicaciones que tienen como estado 'REJECTED' entre el número total.
+
+El resultado es este:
+1 object selected
+0.142857
+
+Que es el ratio de aplicaciones aceptadas (1 de 7).
+
+
+
+
+******QUERY C/8: The ratio of pending applications that cannot change its status because their time period’s elapsed.
+
+select count(a1)*1.0 / (select count(a2)*1.0 from Application a2) from FixUpTask f1 join f1.applications a1 where f1.endDate<CURRENT_DATE and a1.status='PENDING';
+
+Para conseguir dicho ratio calculamos el número de aplicaciones que tienen estado 'PENDING' en las Fix up tasks cuya fecha de final ya ha pasado. Para eso hacemos un join de las Fix up tasks con las aplicaciones, y comprobamos que las condiciones anteriores se cumplen, luego hacemos un count para obtener un número. Después lo dividimos entre el número total de aplicaciones.
+
+El resultado es el siguiente:
+1 object selected
+0.42857
+
+Que hace referencia a las 3 aplicaciones pending que pertenecen a las fix up tasks cuya fecha ya ha concluido.
+
+
+
+
+******QUERY C/9: 
+
+select c1 from Customer c1 where c1.fixUpTasks.size > (select avg(c2.fixUpTasks.size) from Customer c2)*1.1 order by c1.fixUpTasks.size;
+
+Esta query comprueba si hay algún customer que cumpla la condición de que tenga un número de fix up tasks mayor al 10% de la media de fix up tasks por customer (calculado en (select avg(c2.fixUpTasks.size) from Customer c2)*1.1), y las ordena por el mayor número de fix up tasks.
+
+En nuestro caso devuelve:
+
+1 object selected
+domain.Customer{id=1476, version=0}
+	domain.DomainEntity::id: int = 1476
+	domain.DomainEntity::version: int = 0
+	domain.Actor::name: java.lang.String = "manolo"
+	domain.Actor::middleName: java.lang.String = "manola"
+	domain.Actor::phone: java.lang.String = "+34 655234782"
+	domain.Actor::address: java.lang.String = "calle paco"
+	domain.Actor::email: java.lang.String = "customer1@gmail.com"
+	domain.Actor::photo: java.lang.String = "http://www.nigeria.com"
+	domain.Actor::userAccount: security.UserAccount = security.UserAccount{id=1475, version=0}
+	domain.Actor::profiles: java.util.Collection = []
+	domain.Actor::messageBoxes: java.util.Collection = [domain.MessageBox{id=1370, version=0}, domain.MessageBox{id=1371, v
+ersion=0}, domain.MessageBox{id=1372, version=0}, domain.MessageBox{id=1373, version=0}]
+	domain.Customer::fixUpTasks: java.util.Collection = [domain.FixUpTask{id=1455, version=0}, domain.FixUpTask{id=1456, ve
+rsion=0}, domain.FixUpTask{id=1457, version=0}]
+
+Que es el único customer que cumple con la condición (tiene 3 fix up tasks asociadas).
+
+
+
+******QUERY C/10: The listing of handy workers who have got accepted at least 10% more applications
+than the average, ordered by number of applications.
+
+
+select h1.id from HandyWorker h1 inner join h1.applications a1 where (a1.status = 'ACCEPTED') and (select count(a2) from Application a2 where a2.id = a1.id and a2.status='ACCEPTED') > (select count(a1)*1.0 / 
+(select count (a2) from Application a2)*1.0 from Application a1 where a1.status='ACCEPTED')*1.1 group by 'h' order by h1.applications.size;
+
+
+En esta query estamos obteniendo los handy workers que tienen un 10% más de aplicaciones aprobadas que la media, calculada usando la query C4. El resultado es:
+
+
+
+
+******QUERY B/1: The minimum, the maximum, the average, and the standard deviation of the number of complaints per fix-up task.
+
+*Minimum:
+select min(f.complaints.size)
+ from FixUpTask f;
+
+Devuelve el número mínimo de tareas de un customer
+Resultado:
+1 object selected
+1.0
+
+*Maximum:
+select max(f.complaints.size)
+ from FixUpTask f;
+
+Devuelve el número máximo de quejas de una complaint.
+Resultado:
+1 object selected
+1
+
+
+*Average:
+select avg(f.complaints.size)
+ from FixUpTask f;
+
+Devuelve el promedio de quejas de las complaints.
+Resultado:
+1 object selected
+1.0
+
+*Standard deviation:
+
+select sqrt(sum(f.complaints.size * f.complaints.size) / count(f.complaints.size) - avg(f.complaints.size) * avg(f.complaints.size))
+ from FixUpTask f;
+
+Devuelve la desviación estándar de las quejas de las tareas.
+
+
+
+******QUERY B/2: The minimum, the maximum, the average, and the standard deviation of the number of notes per referee report.
+
+*Minimum:
+
+select min(r.notes.size)
+ from Report r;
+
+Devuelve el numero mínimo de notas por cada reporte.
+Resultado:
+1 object selected
+1
+
+*Maximum:
+
+select max(r.notes.size)
+ from Report r;
+
+Devuelve el número máximo de notas por cada reporte.
+Resultado:
+1 object selected
+1
+
+*Average:
+
+select avg(r.notes.size)
+ from Report r;
+
+Devuelve el número medio de notas por reporte.
+Resultado:
+1 object selected
+1.0
+
+*Standard deviation:
+
+select sqrt(sum(r.notes.size * r.notes.size) / count(r.notes.size) - avg(r.notes.size) * avg(r.notes.size))
+ from Report r;
+
+Devuelve la desviación estándar de las notas por reporte.
+Resultado:
+1 object selected
+0.0
+
+
+
+******QUERY B/3: The ratio of fix-up tasks with a complaint.
+
+select count(f1)*1.0 / (select count(f2) from FixUpTask f2)*1.0 from FixUpTask f1 where f1.complaints.size > 0;
+
+El resultado es calculado dividiendo la cuenta de fix up tasks con complaints entre el número total de fix up tasks.
+Resultado:
+1 object selected
+1.0
+
+
+
+
+******QUERY B/4: The top-three customers in terms of complaints
+
+select c.id , count(c3) from Customer c join c.fixUpTasks f, Complaint c3 where c3 member of f.complaints group by c.id order by count(c3) desc;
+Resultado:
+2 objects selected
+[1474, 5]
+[1476, 5]
+
+
+
+*****QUERY B/5: The top-three handy workers in terms of complaints
+
+select h.id, count(c3) from HandyWorker h join h.applications a2,FixUpTask f join f.applications a, Complaint c3 where c3 member of f.complaints and (a.id = a2.id  and a2.status = 'ACCEPTED') group by h.id order by count(c3) desc;
+
+Resultado:
+5 objects selected
+[1472, 5]
+[1464, 5]
+[1466, 5]
+[1468, 5]
+[1470, 5]
