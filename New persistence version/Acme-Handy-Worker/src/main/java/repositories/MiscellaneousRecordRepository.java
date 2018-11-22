@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import domain.MiscellaneousRecord;
 
 @Repository
-public interface MisecellaneousRecordRepository extends JpaRepository<MiscellaneousRecord,Integer>{
+public interface MiscellaneousRecordRepository extends JpaRepository<MiscellaneousRecord,Integer>{
 
 }
