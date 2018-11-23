@@ -1,0 +1,1 @@
+Esta es la carpeta de trabajo de cada uno, aquí subimos la versión más reciente del proyecto local.
