@@ -3,19 +3,26 @@ package services;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 
+import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import repositories.CustomerRepository;
 import repositories.HandyWorkerRepository;
 import security.Authority;
 import security.LoginService;
 import security.UserAccount;
 import domain.Application;
+import domain.Customer;
+import domain.Finder;
+import domain.FixUpTask;
 import domain.HandyWorker;
 import domain.MessageBox;
+import domain.Phase;
 import domain.Profile;
 
 @Service
@@ -27,6 +34,24 @@ public class HandyWorkerService {
 
 	@Autowired
 	private MessageBoxService		mbs;
+
+	@Autowired
+	private FixUpTaskService		futs;
+
+	@Autowired
+	private CustomerRepository		cr;
+
+	@Autowired
+	private FinderService			fs;
+
+	@Autowired
+	private UserAccountService		uas;
+
+	@Autowired
+	private ApplicationService		as;
+
+	@Autowired
+	private PhaseService			ps;
 
 
 	public HandyWorker create() {//revisar
@@ -105,6 +130,182 @@ public class HandyWorkerService {
 
 		return x;
 
+	}
+
+	public Collection<FixUpTask> getAllFixUpTasks() {
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+
+		Assert.isTrue(LoginService.getPrincipal().getAuthorities().contains(a));
+
+		final Collection<FixUpTask> result = this.futs.findAll();
+
+		return result;
+
+	}
+
+	public Customer navigateToCustomer(final FixUpTask fut) {
+
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+
+		Assert.isTrue(LoginService.getPrincipal().getAuthorities().contains(a));
+
+		final Customer c = this.cr.findCustomerByFixUpTask(fut);
+
+		return c;
+
+	}
+	public Finder filterFixUpTasksByKeyword(final String keyword) {
+		final Finder finder = this.fs.createFinderByKeyword(keyword);
+
+		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
+
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
+
+		final Collection<Finder> finders = actual.getFinders();
+
+		finders.add(finder);
+
+		actual.setFinders(finders);
+		final Finder result = this.fs.save(finder);
+		final HandyWorker h = this.handyWorkerRepository.save(actual);
+
+		return result;
+	}
+
+	public Finder filterFixUpTasksByDateRange(final Date start, final Date end) {
+		final Finder finder = this.fs.createFinderByDateRange(start, end);
+
+		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
+
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
+
+		final Collection<Finder> finders = actual.getFinders();
+
+		finders.add(finder);
+
+		actual.setFinders(finders);
+		final Finder result = this.fs.save(finder);
+		final HandyWorker h = this.handyWorkerRepository.save(actual);
+
+		return result;
+	}
+	public Finder filterFixUpTasksByPriceRange(final Double min, final Double max) {
+		final Finder finder = this.fs.createFinderByPriceRange(min, max);
+
+		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
+
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
+
+		final Collection<Finder> finders = actual.getFinders();
+
+		finders.add(finder);
+
+		actual.setFinders(finders);
+		final Finder result = this.fs.save(finder);
+		final HandyWorker h = this.handyWorkerRepository.save(actual);
+
+		return result;
+	}
+
+	public Collection<Application> listApplications() {
+		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
+
+		return actual.getApplications();
+	}
+
+	public Application showApplication(final int applicationId) {
+		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
+
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
+
+		final Application application = this.as.findOne(applicationId);
+
+		Assert.isTrue(actual.getApplications().contains(application));
+
+		return application;
+	}
+
+	public Application createApplication(final Application app) {
+		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
+
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
+
+		final Application res = new Application();
+		res.setComments(app.getComments());
+		res.setCreditCard(app.getCreditCard());
+		res.setMoment((LocalDate.now().toDate()));
+		res.setOfferedPrice(app.getOfferedPrice());
+		res.setStatus("PENDING");
+
+		final Application result = this.as.save(res);
+
+		return result;
+	}
+
+	public Phase addPhase(final Application a, final Phase phase) {
+		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
+
+		final Authority authority = new Authority();
+		authority.setAuthority(Authority.HANDYWORKER);
+		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(authority));
+
+		Assert.isTrue(actual.getApplications().contains(a));
+		Assert.isTrue(a.getStatus() == "ACCEPTED");
+		Assert.notNull(phase);
+		final Phase p = new Phase();
+		p.setTitle(phase.getTitle());
+		p.setDescription(phase.getDescription());
+		p.setStartMoment(phase.getStartMoment());
+		p.setEndMoment(phase.getEndMoment());
+
+		final Phase result = this.ps.save(p);
+
+		return result;
+
+	}
+
+	public Collection<Phase> getFixUpTaskPhases(final FixUpTask f) {
+		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
+
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
+		//preguntar si hay que comprobar que el handy worker es el propietario de la application aceptada.
+		return f.getPhases();
+
+	}
+
+	public Phase updatePhase(final Phase p) {
+		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
+
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
+		Assert.notNull(p);
+
+		final Phase result = this.ps.save(p);
+
+		return result;
+
+	}
+
+	public void deletePhase(final Phase p) {
+		this.ps.delete(p);
 	}
 
 	public Collection<HandyWorker> findAll() {

@@ -1,7 +1,6 @@
 
 package services;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.ActorRepository;
-import security.Authority;
-import security.LoginService;
 import domain.Actor;
 import domain.Message;
 import domain.MessageBox;
@@ -96,8 +93,17 @@ public class ActorService {
 	 * this.mbs.delete(m);
 	 * }
 	 */
-	public MessageBox editMessageBox(final MessageBox m){
-		Assert.isTrue(expression)
+	public MessageBox editMessageBox(final MessageBox m, final String newName) {
+		//Otra opción es editar el nombre desde el m.getName.
+
+		Assert.isTrue(!m.isSystemBox());
+
+		m.setName(newName);
+
+		final MessageBox result = this.mbs.save(m);
+
+		return result;
+
 	}
 
 	/*

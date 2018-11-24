@@ -5,6 +5,7 @@ import java.util.Collection;
 
 import security.UserAccount;
 import security.UserAccountRepository;
+import domain.HandyWorker;
 
 public class UserAccountService {
 
@@ -28,6 +29,11 @@ public class UserAccountService {
 
 	public void delete(final UserAccount ua) {
 		this.uas.delete(ua);
+	}
+
+	public HandyWorker getHandyByUserAccount(final UserAccount useracc) {
+		final HandyWorker a = this.uas.getHandyByUserAccount(useracc.getUsername());
+		return a;
 	}
 
 }

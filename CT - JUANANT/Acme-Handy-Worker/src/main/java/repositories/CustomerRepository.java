@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import domain.Customer;
+import domain.FixUpTask;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Integer> {
@@ -31,7 +32,11 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
 	Collection<Customer> tenPersentMoreFixUpTasks();
 
 	//B4
-
 	@Query("select c.id , count(c3) from Customer c join c.fixUpTasks f, Complaint c3 where c3 member of f.complaints group by c.id order by count(c3) desc")
 	Map<Integer, Integer> topThreeCustomers();
+
+	//Devuelve el customer asociado a una fix up task:
+	@Query("select c1 from Customer c1 where ?1 member of c1.fixUpTasks")
+	Customer findCustomerByFixUpTask(FixUpTask futtosearch);
+
 }
