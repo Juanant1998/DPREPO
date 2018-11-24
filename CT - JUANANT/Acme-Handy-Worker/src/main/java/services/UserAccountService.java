@@ -5,6 +5,7 @@ import java.util.Collection;
 
 import security.UserAccount;
 import security.UserAccountRepository;
+import domain.Customer;
 import domain.HandyWorker;
 
 public class UserAccountService {
@@ -34,6 +35,12 @@ public class UserAccountService {
 	public HandyWorker getHandyByUserAccount(final UserAccount useracc) {
 		final HandyWorker a = this.uas.getHandyByUserAccount(useracc.getUsername());
 		return a;
+	}
+
+	public Customer getCustomerByUserAccount(final UserAccount useracc) {
+		final Customer c = this.uas.getCustomerByUserAccount(useracc.getUsername());
+		return c;
+
 	}
 
 }
