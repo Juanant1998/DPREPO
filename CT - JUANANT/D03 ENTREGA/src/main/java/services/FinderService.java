@@ -1,6 +1,7 @@
 
 package services;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
@@ -9,8 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import repositories.FinderRepository;
+import domain.Category;
 import domain.Finder;
 import domain.FixUpTask;
+import domain.Warranty;
 
 @Service
 @Transactional
@@ -65,6 +68,30 @@ public class FinderService {
 		final Collection<FixUpTask> fut = this.finderRepository.filterTasksWithPriceRange(min, max);
 
 		result.setFixUpTasks(fut);
+		return result;
+	}
+	public Finder createFinderByWarranty(Warranty w) {
+		final Finder result = this.create();
+		Collection<Warranty> ws = new ArrayList<Warranty>();
+		ws.add(w);
+		result.setWarranties(ws);
+		
+		final Collection<FixUpTask> fut = finderRepository.filterTasksWithWarranty(w);
+		
+		result.setFixUpTasks(fut);
+		return result;
+	}
+	
+	public Finder createFinderByCategory(Category g){
+		final Finder result = this.create();
+		Collection<Category> cs = new ArrayList<Category>();
+		cs.add(g);
+		result.setCategories(cs);
+		
+		final Collection<FixUpTask> fut = finderRepository.filterTasksWithCategory(g);
+		
+		result.setFixUpTasks(fut);
+		
 		return result;
 	}
 }

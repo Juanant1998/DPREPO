@@ -24,13 +24,15 @@ public class CustomerService {
 
 	@Autowired
 	private CustomerRepository	customerRepository;
-
+	
 	@Autowired
 	private UserAccountService	uas;
 
 	@Autowired
 	private ApplicationService	as;
 
+	@Autowired
+	private ActorService actorservice;
 
 	public Customer create() {
 		return new Customer();
@@ -111,6 +113,7 @@ public class CustomerService {
 	}
 
 	public Collection<FixUpTask> getMyFixUpTasks() {
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final UserAccount actual = LoginService.getPrincipal();
 		Assert.notNull(actual);
 
@@ -127,12 +130,14 @@ public class CustomerService {
 	}
 
 	public Collection<Application> getApplicationsForFUT(final FixUpTask fut) {
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final Collection<Application> result = fut.getApplications();
 
 		return result;
 	}
 
 	public Application updateApplication(final Application app, final String status, final String comments) {
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final Application appcopia = app;
 		app.setStatus(status);
 

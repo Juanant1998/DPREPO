@@ -2,6 +2,7 @@
 package services;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,9 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.ActorRepository;
+import security.LoginService;
+import security.UserAccount;
 import domain.Actor;
 import domain.Message;
 import domain.MessageBox;
+import domain.SystemConfig;
 
 @Service
 @Transactional
@@ -41,6 +45,15 @@ public class ActorService {
 	}
 	public void delete(final Actor actor) {
 		this.actorRepository.delete(actor);
+	}
+	
+	public boolean isActualActorBanned(){
+		
+		UserAccount actual = LoginService.getPrincipal();
+		Actor a = actorRepository.getActor(actual);
+		
+		return a.getIsBanned();
+
 	}
 
 	public MessageBox createNewMessageBox(final String username, final String msgboxname) {
@@ -95,6 +108,7 @@ public class ActorService {
 	public Message sendMessage(final Message msg) {
 		Assert.notNull(msg);
 
+		Assert.isTrue(!msg.getSender().getIsBanned());
 		final Message m = this.ms.create();
 		m.setBody(msg.getBody());
 		m.setMoment(msg.getMoment());
@@ -118,7 +132,13 @@ public class ActorService {
 
 	public MessageBox editMessageBox(final MessageBox m, final String newName) {
 		//Otra opción es editar el nombre desde el m.getName.
+		UserAccount actual = LoginService.getPrincipal();
+		Actor a = actorRepository.getActor(actual);
+		
+		Assert.isTrue(a.getMessageBoxes().contains(m));
+		Assert.isTrue(!a.getIsBanned());
 
+		Assert.isTrue(!m.isSystemBox());
 		Assert.isTrue(!m.isSystemBox());
 
 		m.setName(newName);
@@ -129,13 +149,33 @@ public class ActorService {
 
 	}
 	public void deleteMessageBox(final MessageBox m) {
-		//final UserAccount actual = LoginService.getPrincipal();
+		final UserAccount actual = LoginService.getPrincipal();
 		//COMPROBAR si es el dueño de la message box
+		Actor a = actorRepository.getActor(actual);
+		
+		Assert.isTrue(a.getMessageBoxes().contains(m));
+		Assert.isTrue(!a.getIsBanned());
 
 		Assert.isTrue(!m.isSystemBox());
 
 		this.mbs.delete(m);
 
+	}
+	
+	public boolean checkSpammer(String s){
+		List<String> spamwords = SystemConfig.staticgetSpamWords();
+		boolean res = false; //devolvemos esta propiedad para hacer más fácil el envío de mensajes.
+		for(String spamword:spamwords){
+			if(s.contains(spamword)){
+				UserAccount actual = LoginService.getPrincipal();
+				Actor a = actorRepository.getActor(actual);
+				a.setIsSuspicious(true);
+				res = true;
+			}
+		
+		}
+		
+		return res;
 	}
 
 	private void storeMessageOnInBox(final Message m, final Actor a) {

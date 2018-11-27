@@ -17,6 +17,7 @@ import security.Authority;
 import security.LoginService;
 import security.UserAccount;
 import domain.Application;
+import domain.Category;
 import domain.Customer;
 import domain.Finder;
 import domain.FixUpTask;
@@ -24,6 +25,7 @@ import domain.HandyWorker;
 import domain.MessageBox;
 import domain.Phase;
 import domain.Profile;
+import domain.Warranty;
 
 @Service
 @Transactional
@@ -52,6 +54,9 @@ public class HandyWorkerService {
 
 	@Autowired
 	private PhaseService			ps;
+	
+	@Autowired
+	private ActorService actorservice;
 
 
 	public HandyWorker create() {//revisar
@@ -79,6 +84,7 @@ public class HandyWorkerService {
 	}
 
 	public MessageBox createNewMessageBox(final String username, final String msgboxname) {
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final MessageBox msgbox = this.mbs.create();
 		msgbox.setName(username + " " + msgboxname);
 		msgbox.setSystemBox(true);
@@ -88,11 +94,10 @@ public class HandyWorkerService {
 		return result;
 	}
 
-	public HandyWorker register(final HandyWorker hw, final String username, final String password) {
+	public HandyWorker register(final HandyWorker hw) {
 		this.checkAuthority();
 
-		Assert.notNull(username);
-		Assert.notNull(password);
+		Assert.notNull(hw.getUserAccount());
 		Assert.notNull(hw);
 		Assert.notEmpty(hw.getProfiles());
 		Assert.notEmpty(hw.getApplications());
@@ -111,13 +116,13 @@ public class HandyWorkerService {
 		result.setPhone(hw.getPhone());
 		result.setPhoto(hw.getPhoto());
 		result.setProfiles(hw.getProfiles());
-		result.getUserAccount().setPassword(password);
-		result.getUserAccount().setUsername(username);
+		result.getUserAccount().setPassword(hw.getUserAccount().getPassword());
+		result.getUserAccount().setUsername(hw.getUserAccount().getUsername());
 
-		final MessageBox in = this.createNewMessageBox(username, "-in");
-		final MessageBox out = this.createNewMessageBox(username, "-out");
-		final MessageBox trash = this.createNewMessageBox(username, "-trash");
-		final MessageBox spam = this.createNewMessageBox(username, "-spam");
+		final MessageBox in = this.createNewMessageBox(hw.getUserAccount().getUsername(), "-in");
+		final MessageBox out = this.createNewMessageBox(hw.getUserAccount().getUsername(), "-out");
+		final MessageBox trash = this.createNewMessageBox(hw.getUserAccount().getUsername(), "-trash");
+		final MessageBox spam = this.createNewMessageBox(hw.getUserAccount().getUsername(), "-spam");
 
 		final Collection<MessageBox> msboxes = new ArrayList<MessageBox>();
 		msboxes.add(in);
@@ -133,6 +138,7 @@ public class HandyWorkerService {
 	}
 
 	public Collection<FixUpTask> getAllFixUpTasks() {
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final Authority a = new Authority();
 		a.setAuthority(Authority.HANDYWORKER);
 
@@ -144,7 +150,8 @@ public class HandyWorkerService {
 
 	}
 
-	public Customer navigateToCustomer(final FixUpTask fut) {
+	public Customer getFixUpTaskCustomer(final FixUpTask fut) {
+		Assert.isTrue(actorservice.isActualActorBanned());
 
 		final Authority a = new Authority();
 		a.setAuthority(Authority.HANDYWORKER);
@@ -156,7 +163,8 @@ public class HandyWorkerService {
 		return c;
 
 	}
-	public Finder filterFixUpTasksByKeyword(final String keyword) {
+	public Collection<FixUpTask> filterFixUpTasksByKeyword(final String keyword) {
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final Finder finder = this.fs.createFinderByKeyword(keyword);
 
 		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
@@ -165,14 +173,26 @@ public class HandyWorkerService {
 		a.setAuthority(Authority.HANDYWORKER);
 		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
 
-		actual.setFinder(finder);
-		final Finder result = this.fs.save(finder);
+		
+		Finder f = actual.getFinder();
+		f.setCategories(finder.getCategories());
+		f.setEndDate(finder.getEndDate());
+		f.setFixUpTasks(finder.getFixUpTasks());
+		f.setMaxPrice(finder.getMaxPrice());
+		f.setMinPrice(finder.getMinPrice());
+		f.setStartDate(finder.getStartDate());
+		f.setWarranties(finder.getWarranties());
+		
+		actual.setFinder(f);
+		
+
 		final HandyWorker h = this.handyWorkerRepository.save(actual);
 
-		return result;
+		return f.getFixUpTasks();
 	}
 
-	public Finder filterFixUpTasksByDateRange(final Date start, final Date end) {
+	public Collection<FixUpTask> filterFixUpTasksByDateRange(final Date start, final Date end) {
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final Finder finder = this.fs.createFinderByDateRange(start, end);
 
 		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
@@ -181,13 +201,25 @@ public class HandyWorkerService {
 		a.setAuthority(Authority.HANDYWORKER);
 		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
 
-		actual.setFinder(finder);
-		final Finder result = this.fs.save(finder);
+		Finder f = actual.getFinder();
+		f.setCategories(finder.getCategories());
+		f.setEndDate(finder.getEndDate());
+		f.setFixUpTasks(finder.getFixUpTasks());
+		f.setMaxPrice(finder.getMaxPrice());
+		f.setMinPrice(finder.getMinPrice());
+		f.setStartDate(finder.getStartDate());
+		f.setWarranties(finder.getWarranties());
+		
+		actual.setFinder(f);
+		
+
 		final HandyWorker h = this.handyWorkerRepository.save(actual);
 
-		return result;
+		return f.getFixUpTasks();
 	}
-	public Finder filterFixUpTasksByPriceRange(final Double min, final Double max) {
+	public Collection<FixUpTask> filterFixUpTasksByPriceRange(final Double min, final Double max) {
+		
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final Finder finder = this.fs.createFinderByPriceRange(min, max);
 
 		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
@@ -195,15 +227,85 @@ public class HandyWorkerService {
 		final Authority a = new Authority();
 		a.setAuthority(Authority.HANDYWORKER);
 		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
+		Finder f = actual.getFinder();
+		f.setCategories(finder.getCategories());
+		f.setEndDate(finder.getEndDate());
+		f.setFixUpTasks(finder.getFixUpTasks());
+		f.setMaxPrice(finder.getMaxPrice());
+		f.setMinPrice(finder.getMinPrice());
+		f.setStartDate(finder.getStartDate());
+		f.setWarranties(finder.getWarranties());
+		
+		actual.setFinder(f);
+		
 
-		actual.setFinder(finder);
-		final Finder result = this.fs.save(finder);
 		final HandyWorker h = this.handyWorkerRepository.save(actual);
 
-		return result;
+		return f.getFixUpTasks();
 	}
+	
+	
+	public Collection<FixUpTask> filterFixUpTasksByWarranty(Warranty w) {
+		
+		Assert.isTrue(actorservice.isActualActorBanned());
+		final Finder finder = this.fs.createFinderByWarranty(w);
+
+		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
+
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
+		Finder f = actual.getFinder();
+		f.setCategories(finder.getCategories());
+		f.setEndDate(finder.getEndDate());
+		f.setFixUpTasks(finder.getFixUpTasks());
+		f.setMaxPrice(finder.getMaxPrice());
+		f.setMinPrice(finder.getMinPrice());
+		f.setStartDate(finder.getStartDate());
+		f.setWarranties(finder.getWarranties());
+		
+		actual.setFinder(f);
+		
+
+		final HandyWorker h = this.handyWorkerRepository.save(actual);
+
+		return f.getFixUpTasks();
+	}	
+	
+	
+	public Collection<FixUpTask> filterFixUpTasksByCategory(Category w) {
+		Assert.isTrue(actorservice.isActualActorBanned());
+		
+		final Finder finder = this.fs.createFinderByCategory(w);
+
+		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
+
+		final Authority a = new Authority();
+		a.setAuthority(Authority.HANDYWORKER);
+		Assert.isTrue(actual.getUserAccount().getAuthorities().contains(a));
+		Finder f = actual.getFinder();
+		f.setCategories(finder.getCategories());
+		f.setEndDate(finder.getEndDate());
+		f.setFixUpTasks(finder.getFixUpTasks());
+		f.setMaxPrice(finder.getMaxPrice());
+		f.setMinPrice(finder.getMinPrice());
+		f.setStartDate(finder.getStartDate());
+		f.setWarranties(finder.getWarranties());
+		
+		actual.setFinder(f);
+		
+
+		final HandyWorker h = this.handyWorkerRepository.save(actual);
+
+		return f.getFixUpTasks();
+	}	
+	
+	
+	
 
 	public Collection<Application> listApplications() {
+		
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
 		final Authority a = new Authority();
 		a.setAuthority(Authority.HANDYWORKER);
@@ -213,6 +315,7 @@ public class HandyWorkerService {
 	}
 
 	public Application showApplication(final int applicationId) {
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
 
 		final Authority a = new Authority();
@@ -227,6 +330,8 @@ public class HandyWorkerService {
 	}
 
 	public Application createApplication(final Application app) {
+		
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
 
 		final Authority a = new Authority();
@@ -246,6 +351,8 @@ public class HandyWorkerService {
 	}
 
 	public Phase addPhase(final Application a, final Phase phase) {
+		
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
 
 		final Authority authority = new Authority();
@@ -268,6 +375,8 @@ public class HandyWorkerService {
 	}
 
 	public Collection<Phase> getFixUpTaskPhases(final FixUpTask f) {
+		
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
 
 		final Authority a = new Authority();
@@ -279,6 +388,7 @@ public class HandyWorkerService {
 	}
 
 	public Phase updatePhase(final Phase p) {
+		Assert.isTrue(actorservice.isActualActorBanned());
 		final HandyWorker actual = this.uas.getHandyByUserAccount(LoginService.getPrincipal());
 
 		final Authority a = new Authority();
@@ -293,6 +403,7 @@ public class HandyWorkerService {
 	}
 
 	public void deletePhase(final Phase p) {
+		Assert.isTrue(actorservice.isActualActorBanned());
 		this.ps.delete(p);
 	}
 

@@ -35,5 +35,6 @@ public interface FinderRepository extends JpaRepository<Finder, Integer> {
 	//Finder query for Category:
 	@Query("select f1 from FixUpTask f1 where f1.category = ?1")
 	Collection<FixUpTask> filterTasksWithCategory(Category c);
+	
 
 }

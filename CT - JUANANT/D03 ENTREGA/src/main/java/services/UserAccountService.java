@@ -3,11 +3,17 @@ package services;
 
 import java.util.Collection;
 
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import security.UserAccount;
 import security.UserAccountRepository;
 import domain.Customer;
 import domain.HandyWorker;
 
+@Service
+@Transactional
 public class UserAccountService {
 
 	private UserAccountRepository	uas;
