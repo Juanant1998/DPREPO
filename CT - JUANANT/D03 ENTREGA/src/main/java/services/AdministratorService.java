@@ -1,6 +1,7 @@
 
 package services;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -10,12 +11,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import repositories.AdministratorRepository;
+import repositories.ApplicationRepository;
+import repositories.CustomerRepository;
+import repositories.FixUpTaskRepository;
+import repositories.HandyWorkerRepository;
 import security.Authority;
 import security.LoginService;
 import security.UserAccount;
 import domain.Actor;
 import domain.Administrator;
 import domain.Category;
+import domain.Customer;
+import domain.HandyWorker;
 import domain.Message;
 import domain.MessageBox;
 import domain.Warranty;
@@ -33,6 +40,14 @@ public class AdministratorService {
 	private CategoryService			categoryService;
 	@Autowired
 	private ActorService			actorService;
+	@Autowired
+	private FixUpTaskRepository futs;
+	@Autowired
+	private ApplicationRepository as;
+	@Autowired
+	private HandyWorkerRepository hs;
+	@Autowired
+	private CustomerRepository cs;
 
 
 	public Administrator create() {
@@ -142,4 +157,49 @@ public class AdministratorService {
 				}
 	}
 
+	public Collection<Object> displayClevelDashboard(){
+		Integer min1 = futs.minApplicationsByFixUpTasks();
+		Integer max1 = futs.minApplicationsByFixUpTasks();
+		Double avg1 = futs.averageApplicationsByFixUpTasks();
+		Integer d1 = futs.desviationApplicationsByFixUpTasks();
+		
+		Integer min2 = cs.minFixUpTaskByCustomer();
+		Integer max2= cs.maxFixUpTaskByCustomer();
+		Double avg2 = cs.averageFixUpTaskByCustomer();
+		Integer d2 = cs.deviationFixUpTaskByCustomer();
+		
+		Integer min3 = futs.minMaximunPriceByFixUpTasks();
+		Integer max3 = futs.minMaximunPriceByFixUpTasks();
+		Double avg3 = futs.averageMaximunPriceByFixUpTasks();
+		Integer d3 = futs.desviationMaximumPriceByFixUpTasks();
+		
+		Integer min4 = as.minOfferedPriceByFixUpTasks();
+		Integer max4 = as.maxOfferedPriceByFixUpTasks();
+		Double avg4 = as.averageOfferedPriceByFixUpTasks();
+		Integer d4 = as.desviationOfferedPriceByFixUpTasks();
+		
+		Double rpending = as.ratioPendingAplications();
+		
+		Double raccepted = as.ratioAcceptedAplications();
+		
+		Double rrejected = as.ratioRejectedAplications();
+		
+		Double relapsed = as.ratioPendingApplicationsSpiret();
+		
+		Collection<Customer> c9 = cs.tenPersentMoreFixUpTasks();
+		
+		Collection<HandyWorker> c10 = hs.tenPercentMoreAcceptedApplications();
+		
+		Collection<Object> res = new ArrayList<Object>();
+		
+		res.add(min1);res.add(min2);res.add(min3);res.add(min4);
+		res.add(max1);res.add(max2);res.add(max3);res.add(max4);
+		res.add(avg1);res.add(avg2);res.add(avg3);res.add(avg4);
+		res.add(d1);res.add(d2);res.add(d3);res.add(d4);
+		res.add(rpending);res.add(raccepted);res.add(rrejected);res.add(relapsed);
+		res.add(c9);res.add(c10);
+		
+		return res;
+		
+	}
 }
