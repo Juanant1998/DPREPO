@@ -3,6 +3,7 @@ package services;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,8 @@ public class CustomerService {
 	
 	@Autowired
 	private ReportService rs;
+	@Autowired
+	private ComplaintService complaintService;
 
 	public Customer create() {
 		return new Customer();
@@ -178,30 +181,37 @@ public class CustomerService {
 			
 			return result;
 		}
+	public  void  createComplaintByCustomer(Complaint t,FixUpTask fut){
+	
+		
+		
+		UserAccount user;
+		user = LoginService.getPrincipal();
+		
+		Customer  kast= uas.getCustomerByUserAccount(user);
+		Collection<FixUpTask> futs = kast.getFixUpTasks();
+			if(futs.contains(fut)){
+			Collection<Complaint> complaints = 	fut.getComplaints();
+			complaints.add(t);
+			
+			fut.setComplaints(complaints);
+		
+			}
+			
+			
+			
+		}
+		
+	
+		
+		
+		
+	
 	
 	public Note writeCommentOnNote(Note n, String comments){
 		Customer actual = uas.getCustomerByUserAccount(LoginService.getPrincipal());
 		Assert.isTrue(!actual.getIsBanned());
-		
-		Collection<FixUpTask> fixuptasks = new ArrayList<FixUpTask>();
-		Collection<Complaint> comp = new ArrayList<Complaint>();
-		Collection<Report> reports = new ArrayList<Report>();
-		/*boolean z = false; //comentar y poner a false
-		for(FixUpTask f:fixuptasks){
-			for(Complaint x : f.getComplaints()){
-				comp.add(x);
-			}
-		}
-		
-		for(Complaint c: comp){
-			for(Note notas: c.getReport().getNotes()){
-				if (notas.getId() == n.getId()){
-					z = true;
-				}
-			}
-		}
-		
-		Assert.isTrue(z);*/
+	
 		
 		
 		n.setComment(n.getComment() + "Comentario de " + LoginService.getPrincipal().getUsername() + ": " + comments);
@@ -212,4 +222,5 @@ public class CustomerService {
 	
 	
 	}
+	
 }

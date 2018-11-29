@@ -11,16 +11,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import security.Authority;
+import security.UserAccount;
+import utilities.AbstractTest;
 import domain.Application;
+import domain.Complaint;
 import domain.Customer;
 import domain.FixUpTask;
 import domain.Note;
 import domain.Report;
-
-
-import security.Authority;
-import security.UserAccount;
-import utilities.AbstractTest;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {
@@ -41,6 +40,10 @@ public class CustomerServiceTest extends AbstractTest {
 	private NoteService noteService;
 	@Autowired
 	private ReportService reportService;
+	@Autowired
+	private ComplaintService complaintService;
+	
+
 	
 	@Test
 	public void testSaveCustomers(){
@@ -146,7 +149,41 @@ public void testWriteNoteForReport(){
 	Assert.isTrue(notes.contains(n));
 	super.authenticate(null);
 	
+}@Test
+public void testCreateComplaintByCustomer(){
+	super.authenticate("customer1");
+	
+	Complaint  t = this.complaintService.findOne(super.getEntityId("complaint1"));
+	//comprobar que corresponden
+	FixUpTask fut = this.fixUpTaskService.findOne(super.getEntityId("fixUpTask1"));
+	this.customerService.createComplaintByCustomer(t, fut);
+	Assert.isTrue(fut.getComplaints().contains(t));
+	super.authenticate(null);
+	
 }
+@Test
+public  void  testWriteCommentOnNote(){
+	super.authenticate("customer1");
+	
+	Note  n = this.noteService.findOne(super.getEntityId("note1"));
+	String  antiguo = n.getComment();
+	
+	String comments =" me encanta dp";
+	this.customerService.writeCommentOnNote(n, comments);
+	Assert.isTrue(!n.equals(antiguo));
+	super.authenticate(null);
+	
+}
+@Test
+public  void testGetMyComplaints(){
+	
+	super.authenticate("customer1");
+	Collection<Complaint> complaints =this.customerService.getMyComplaints();
+	Assert.notEmpty(complaints);
+	super.authenticate(null);
+}
+
+
 
 }
 
